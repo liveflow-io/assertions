@@ -829,7 +829,7 @@ defmodule Assertions do
               expr: unquote(assertion),
               message: "Received unexpected message: `#{inspect(random_thing)}`"
         after
-          timeout -> flunk(unquote(failure_message))
+          timeout -> ExUnit.Assertions.flunk(unquote(failure_message))
         end
 
       true
@@ -849,12 +849,16 @@ defmodule Assertions do
 
     failure_message =
       quote do
-        ExUnit.Assertions.__timeout__(
-          unquote(binary),
-          unquote(pins),
-          unquote(pattern_finder),
-          timeout
-        )
+        try do
+          ExUnit.Assertions.__timeout__(
+            unquote(binary),
+            unquote(pins),
+            unquote(pattern_finder),
+            timeout
+          )
+        rescue
+          e -> IO.inspect(e)
+        end
       end
 
     {timeout, pattern, failure_message}
@@ -878,13 +882,17 @@ defmodule Assertions do
 
     failure_message =
       quote do
-        ExUnit.Assertions.__timeout__(
-          unquote(Macro.escape(expanded_pattern)),
-          unquote(code),
-          unquote(pins),
-          unquote(pattern_finder),
-          timeout
-        )
+        try do
+          ExUnit.Assertions.__timeout__(
+            unquote(Macro.escape(expanded_pattern)),
+            unquote(code),
+            unquote(pins),
+            unquote(pattern_finder),
+            timeout
+          )
+        rescue
+          e -> IO.inspect(e)
+        end
       end
 
     {timeout, pattern, failure_message}
